@@ -98,6 +98,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stock detail route with historical data
+  app.get("/api/stocks/:id/detail", async (req, res) => {
+    try {
+      const { period } = req.query;
+      const stockWithHistory = await storage.getStockWithHistoricalData(
+        req.params.id, 
+        period as string
+      );
+      if (!stockWithHistory) {
+        return res.status(404).json({ error: "Stock not found" });
+      }
+      res.json(stockWithHistory);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stock details" });
+    }
+  });
+
+  // Historical stock data route
+  app.get("/api/stocks/:id/historical", async (req, res) => {
+    try {
+      const { period } = req.query;
+      const historicalData = await storage.getStockHistoricalData(
+        req.params.id, 
+        period as string
+      );
+      res.json(historicalData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch historical data" });
+    }
+  });
+
   // Recommendations routes
   app.get("/api/recommendations", async (_req, res) => {
     try {

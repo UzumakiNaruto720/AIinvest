@@ -9,7 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ArrowLeft, TrendingUp, TrendingDown, Volume2, DollarSign, Calendar, Activity } from "lucide-react";
 
 interface StockDetailProps {
-  stockId?: string;
+  params?: { stockId: string };
 }
 
 interface StockWithHistorical {
@@ -128,10 +128,9 @@ const getCompanyInitials = (name: string) => {
   return name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
 };
 
-export default function StockDetail({ stockId: propStockId }: StockDetailProps) {
-  const { stockId: paramStockId } = useParams();
+export default function StockDetail(props: StockDetailProps) {
+  const { stockId } = useParams<{ stockId: string }>();
   const [, setLocation] = useLocation();
-  const stockId = propStockId || paramStockId;
   const [selectedPeriod, setSelectedPeriod] = useState("1M");
 
   const { data: stock, isLoading } = useQuery<StockWithHistorical>({

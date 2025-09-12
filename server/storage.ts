@@ -11,7 +11,8 @@ import {
   type User, type UpsertUser,
   type UserInvestment, type InsertUserInvestment,
   type InvestmentAlert, type InsertInvestmentAlert,
-  users, stocks, recommendations, marketIndices, news, watchlist, alerts, portfolio, forexPairs, portfolioHoldings, userInvestments, investmentAlerts
+  type StockHistoricalData, type InsertStockHistoricalData,
+  users, stocks, recommendations, marketIndices, news, watchlist, alerts, portfolio, forexPairs, portfolioHoldings, userInvestments, investmentAlerts, stockHistoricalData
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -24,6 +25,11 @@ export interface IStorage {
   getStockBySymbol(symbol: string): Promise<Stock | undefined>;
   createStock(stock: InsertStock): Promise<Stock>;
   updateStock(id: string, stock: Partial<Stock>): Promise<Stock | undefined>;
+  
+  // Stock Historical Data
+  getStockHistoricalData(stockId: string, period?: string): Promise<StockHistoricalData[]>;
+  createStockHistoricalData(data: InsertStockHistoricalData): Promise<StockHistoricalData>;
+  getStockWithHistoricalData(stockId: string, period?: string): Promise<(Stock & { historical: StockHistoricalData[] }) | undefined>;
 
   // Recommendations
   getRecommendations(): Promise<(Recommendation & { stock: Stock })[]>;
@@ -90,6 +96,7 @@ export class MemStorage implements IStorage {
   private portfolioHoldings: Map<string, PortfolioHolding> = new Map();
   private userInvestments: Map<string, UserInvestment> = new Map();
   private investmentAlerts: Map<string, InvestmentAlert> = new Map();
+  private stockHistoricalData: Map<string, StockHistoricalData> = new Map();
 
   constructor() {
     this.initializeData();
@@ -855,6 +862,60 @@ export class MemStorage implements IStorage {
       }
     }
   }
+
+  // Stock Historical Data Methods
+  async getStockHistoricalData(stockId: string, period?: string): Promise<StockHistoricalData[]> {
+    const allData = Array.from(this.stockHistoricalData.values())
+      .filter(data => data.stockId === stockId);
+    
+    if (!period) return allData;
+    
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (period) {
+      case "1M":
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      case "1Y":
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      case "5Y":
+        startDate.setFullYear(now.getFullYear() - 5);
+        break;
+      default:
+        return allData;
+    }
+    
+    return allData.filter(data => data.date >= startDate).sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
+
+  async createStockHistoricalData(data: InsertStockHistoricalData): Promise<StockHistoricalData> {
+    const id = randomUUID();
+    const historicalData: StockHistoricalData = {
+      id,
+      stockId: data.stockId,
+      date: data.date,
+      open: data.open,
+      high: data.high,
+      low: data.low,
+      close: data.close,
+      volume: data.volume || null,
+      adjustedClose: data.adjustedClose || null,
+      createdAt: new Date(),
+    };
+    
+    this.stockHistoricalData.set(id, historicalData);
+    return historicalData;
+  }
+
+  async getStockWithHistoricalData(stockId: string, period?: string): Promise<(Stock & { historical: StockHistoricalData[] }) | undefined> {
+    const stock = this.stocks.get(stockId);
+    if (!stock) return undefined;
+    
+    const historical = await this.getStockHistoricalData(stockId, period);
+    return { ...stock, historical };
+  }
 }
 
 // Create a database storage implementation
@@ -1019,6 +1080,19 @@ export class DatabaseStorage implements IStorage {
 
   async createMarketIndex(index: InsertMarketIndex): Promise<MarketIndex> {
     return this.memStorage.createMarketIndex(index);
+  }
+
+  // Stock Historical Data Methods - delegate to MemStorage for now
+  async getStockHistoricalData(stockId: string, period?: string): Promise<StockHistoricalData[]> {
+    return this.memStorage.getStockHistoricalData(stockId, period);
+  }
+
+  async createStockHistoricalData(data: InsertStockHistoricalData): Promise<StockHistoricalData> {
+    return this.memStorage.createStockHistoricalData(data);
+  }
+
+  async getStockWithHistoricalData(stockId: string, period?: string): Promise<(Stock & { historical: StockHistoricalData[] }) | undefined> {
+    return this.memStorage.getStockWithHistoricalData(stockId, period);
   }
 }
 
