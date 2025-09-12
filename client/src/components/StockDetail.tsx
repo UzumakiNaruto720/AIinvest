@@ -133,8 +133,13 @@ export default function StockDetail(props: StockDetailProps) {
   const [, setLocation] = useLocation();
   const [selectedPeriod, setSelectedPeriod] = useState("1M");
 
-  const { data: stock, isLoading } = useQuery<StockWithHistorical>({
-    queryKey: ['/api/stocks/detail', stockId],
+  const { data: stock, isLoading, isFetching } = useQuery<StockWithHistorical>({
+    queryKey: ['/api/stocks', stockId, 'detail', selectedPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/stocks/${stockId}/detail?period=${selectedPeriod}`);
+      if (!response.ok) throw new Error('Failed to fetch stock details');
+      return response.json();
+    },
     enabled: !!stockId
   });
 
@@ -156,7 +161,24 @@ export default function StockDetail(props: StockDetailProps) {
   };
 
   const displayStock = stock || mockStock;
-  const historicalData = generateMockHistoricalData(displayStock.currentPrice, selectedPeriod);
+  
+  // Use backend historical data when available, fallback to mock data
+  const getHistoricalData = () => {
+    if (stock?.historical && stock.historical.length > 0) {
+      // Transform backend data for chart display
+      return stock.historical.map(item => ({
+        ...item,
+        timestamp: new Date(item.date).getTime(),
+        displayDate: selectedPeriod === "1M" ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) :
+                     selectedPeriod === "1Y" ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) :
+                     new Date(item.date).toLocaleDateString('en-US', { year: 'numeric' })
+      }));
+    }
+    // Fallback to mock data when no backend data
+    return generateMockHistoricalData(displayStock.currentPrice, selectedPeriod);
+  };
+  
+  const historicalData = getHistoricalData();
   
   const isPositive = displayStock.changeAmount >= 0;
   const latestPrice = historicalData[historicalData.length - 1]?.close || displayStock.currentPrice;
@@ -309,7 +331,7 @@ export default function StockDetail(props: StockDetailProps) {
         </div>
 
         {/* Chart Section */}
-        <Card>
+        <Card className="relative">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold">Price Chart</CardTitle>
@@ -329,6 +351,16 @@ export default function StockDetail(props: StockDetailProps) {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Loading indicator during refetch */}
+            {isFetching && !isLoading && (
+              <div className="absolute top-4 right-4 z-10">
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-full shadow-md border border-gray-200 dark:border-gray-700">
+                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Updating chart...</span>
+                </div>
+              </div>
+            )}
+            
             <Tabs defaultValue="line" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="line" data-testid="tab-line-chart">Line Chart</TabsTrigger>

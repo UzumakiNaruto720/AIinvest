@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { z } from "zod";
+
+// Validation schemas
+const periodSchema = z.enum(["1M", "1Y", "5Y"]).default("1M");
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Simple test authentication
@@ -101,16 +105,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stock detail route with historical data
   app.get("/api/stocks/:id/detail", async (req, res) => {
     try {
-      const { period } = req.query;
+      // Validate period parameter
+      const periodResult = periodSchema.safeParse(req.query.period);
+      if (!periodResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid period parameter. Must be one of: 1M, 1Y, 5Y",
+          details: periodResult.error.issues 
+        });
+      }
+      
+      const period = periodResult.data;
       const stockWithHistory = await storage.getStockWithHistoricalData(
         req.params.id, 
-        period as string
+        period
       );
       if (!stockWithHistory) {
         return res.status(404).json({ error: "Stock not found" });
       }
       res.json(stockWithHistory);
     } catch (error) {
+      console.error('Error fetching stock details:', error);
       res.status(500).json({ error: "Failed to fetch stock details" });
     }
   });
