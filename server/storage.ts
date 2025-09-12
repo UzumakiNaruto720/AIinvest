@@ -103,22 +103,22 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize market indices
+    // Initialize market indices with current levels (September 2024)
     const nifty: MarketIndex = {
       id: "NIFTY50",
       name: "NIFTY 50",
-      currentValue: 19674.25,
-      changeAmount: 145.80,
-      changePercent: 0.75,
+      currentValue: 25385.80,
+      changeAmount: 65.90,
+      changePercent: 0.26,
       updatedAt: new Date(),
     };
     
     const sensex: MarketIndex = {
       id: "SENSEX",
       name: "SENSEX",
-      currentValue: 66112.50,
-      changeAmount: 523.20,
-      changePercent: 0.80,
+      currentValue: 83184.80,
+      changeAmount: 226.85,
+      changePercent: 0.27,
       updatedAt: new Date(),
     };
     
@@ -135,16 +135,16 @@ export class MemStorage implements IStorage {
     };
     this.portfolios.set(portfolio.id, portfolio);
 
-    // Initialize sample stocks
+    // Initialize sample stocks with current market prices (September 2024)
     const stocks: Stock[] = [
       {
         id: "TCS",
         symbol: "TCS",
         name: "Tata Consultancy Services",
-        currentPrice: 3542.80,
-        changeAmount: 72.45,
-        changePercent: 2.1,
-        marketCap: 1280000000000,
+        currentPrice: 3095.70,
+        changeAmount: -1.80,
+        changePercent: -0.06,
+        marketCap: 1130363000000, // ₹11,30,363 Cr
         peRatio: 28.5,
         volume: 2500000,
         aiScore: 8.7,
@@ -156,9 +156,9 @@ export class MemStorage implements IStorage {
         id: "RIL",
         symbol: "RIL",
         name: "Reliance Industries",
-        currentPrice: 2876.45,
-        changeAmount: -23.10,
-        changePercent: -0.8,
+        currentPrice: 2850.00, // Approximate current price
+        changeAmount: -12.45,
+        changePercent: -0.43,
         marketCap: 1945000000000,
         peRatio: 15.2,
         volume: 3200000,
@@ -171,10 +171,10 @@ export class MemStorage implements IStorage {
         id: "HDFCBANK",
         symbol: "HDFCBANK",
         name: "HDFC Bank",
-        currentPrice: 1645.20,
-        changeAmount: -25.15,
-        changePercent: -1.5,
-        marketCap: 1245000000000,
+        currentPrice: 965.15,
+        changeAmount: 7.50,
+        changePercent: 0.78,
+        marketCap: 1483000000000, // ₹14.83T
         peRatio: 18.7,
         volume: 4100000,
         aiScore: 3.8,
@@ -186,10 +186,10 @@ export class MemStorage implements IStorage {
         id: "INFY",
         symbol: "INFY",
         name: "Infosys",
-        currentPrice: 1456.75,
-        changeAmount: 28.30,
-        changePercent: 1.98,
-        marketCap: 615000000000,
+        currentPrice: 1496.50,
+        changeAmount: -2.90,
+        changePercent: -0.19,
+        marketCap: 627189000000, // ₹6,27,189 Cr
         peRatio: 25.3,
         volume: 1800000,
         aiScore: 7.8,
@@ -201,9 +201,9 @@ export class MemStorage implements IStorage {
         id: "WIPRO",
         symbol: "WIPRO",
         name: "Wipro",
-        currentPrice: 445.60,
-        changeAmount: -8.20,
-        changePercent: -1.81,
+        currentPrice: 244.97,
+        changeAmount: -4.60,
+        changePercent: -1.84,
         marketCap: 245000000000,
         peRatio: 22.1,
         volume: 9800000,
@@ -216,15 +216,15 @@ export class MemStorage implements IStorage {
 
     stocks.forEach(stock => this.stocks.set(stock.id, stock));
 
-    // Initialize recommendations
+    // Initialize recommendations with updated target prices
     const recommendations: (InsertRecommendation & { id: string })[] = [
       {
         id: randomUUID(),
         stockId: "TCS",
         action: "BUY",
         score: 8.7,
-        targetPrice: 3800,
-        stopLoss: 3300,
+        targetPrice: 3200,
+        stopLoss: 2950,
         analysis: "Strong Q3 earnings beat expectations. Technical indicators show bullish momentum with RSI at 65.",
         confidence: 87,
       },
@@ -233,20 +233,20 @@ export class MemStorage implements IStorage {
         stockId: "RIL",
         action: "HOLD",
         score: 6.5,
-        targetPrice: 2950,
-        stopLoss: 2700,
+        targetPrice: 2920,
+        stopLoss: 2750,
         analysis: "Consolidating near support levels. Wait for breakout above ₹2,900 for bullish confirmation.",
         confidence: 65,
       },
       {
         id: randomUUID(),
         stockId: "HDFCBANK",
-        action: "SELL",
-        score: 3.8,
-        targetPrice: 1550,
-        stopLoss: 1700,
-        analysis: "Breaking key support at ₹1,650. Regulatory concerns and NIM pressure affecting outlook.",
-        confidence: 82,
+        action: "BUY",
+        score: 7.2,
+        targetPrice: 1050,
+        stopLoss: 920,
+        analysis: "Strong fundamentals with current price near support levels. Banking sector recovery expected with rate cycle stabilization.",
+        confidence: 72,
       },
     ];
 
