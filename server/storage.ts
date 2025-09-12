@@ -253,38 +253,58 @@ export class MemStorage implements IStorage {
     recommendations.forEach(rec => {
       const recommendation: Recommendation = {
         ...rec,
+        targetPrice: rec.targetPrice ?? null,
+        stopLoss: rec.stopLoss ?? null,
         createdAt: new Date(),
       };
       this.recommendations.set(recommendation.id, recommendation);
     });
 
-    // Initialize sample news
+    // Initialize current market news (September 2024)
     const newsItems: (InsertNews & { id: string })[] = [
       {
         id: randomUUID(),
-        headline: "RBI Maintains Repo Rate at 6.5%, Focuses on Inflation Control",
-        summary: "The Reserve Bank of India keeps key policy rates unchanged, citing inflation concerns and global economic uncertainty.",
-        source: "Economic Times",
+        headline: "Nifty Surpasses 25,000 for First Time in Three Weeks",
+        summary: "Indian indices close higher with Nifty gaining 0.1% to 25,005.5 and Sensex rising to 81,548.73, marking fourth consecutive day of gains despite mixed global cues.",
+        source: "Business Standard",
         sentiment: "Positive",
-        sentimentScore: 72,
-        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+        sentimentScore: 82,
+        publishedAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
       },
       {
         id: randomUUID(),
-        headline: "IT Sector Shows Strong Q3 Results Amid Global Demand",
-        summary: "Major IT companies report better-than-expected earnings, boosting sector outlook for 2024.",
-        source: "Business Standard",
+        headline: "Sensex, Nifty Hit Fresh All-Time Highs on FII Buying",
+        summary: "Benchmark indices surge to new records with Sensex touching 85,978 and Nifty breaching 26,000 mark for first time, driven by strong foreign institutional investor flows.",
+        source: "Economic Times",
+        sentiment: "Positive",
+        sentimentScore: 88,
+        publishedAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+      },
+      {
+        id: randomUUID(),
+        headline: "Metal Stocks Surge 2.91% Led by Tata Steel Rally",
+        summary: "Nifty Metal index leads sectoral gains with 2.91% surge, followed by IT and Auto sectors. Tata Steel, Power Grid, and Tech Mahindra among top performers with gains up to 4.29%.",
+        source: "Mint",
         sentiment: "Positive",
         sentimentScore: 85,
         publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
       },
       {
         id: randomUUID(),
-        headline: "Foreign Institutional Investors Turn Net Buyers",
-        summary: "FIIs invest ₹2,800 crores in Indian equities, signaling renewed confidence in market fundamentals.",
-        source: "Mint",
+        headline: "Demat Accounts Cross 20 Crore Mark Despite August Slowdown",
+        summary: "India adds 24.8 lakh new demat accounts in August, taking total to over 20 crore - a fourfold increase since 2020, though growth slowed from July's 29.8 lakh additions.",
+        source: "Business Standard",
+        sentiment: "Neutral",
+        sentimentScore: 72,
+        publishedAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+      },
+      {
+        id: randomUUID(),
+        headline: "Indian Markets Show Resilience Amid Global Uncertainty",
+        summary: "Despite mixed global cues and earnings concerns, Indian equity markets demonstrate remarkable strength with consistent gains and record-breaking performance in September 2024.",
+        source: "Hindu BusinessLine",
         sentiment: "Positive",
-        sentimentScore: 78,
+        sentimentScore: 80,
         publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
       },
     ];
@@ -292,6 +312,9 @@ export class MemStorage implements IStorage {
     newsItems.forEach(item => {
       const news: News = {
         ...item,
+        summary: item.summary ?? null,
+        sentiment: item.sentiment ?? null,
+        sentimentScore: item.sentimentScore ?? null,
         createdAt: new Date(),
       };
       this.news.set(news.id, news);
@@ -346,6 +369,9 @@ export class MemStorage implements IStorage {
     alertItems.forEach(item => {
       const alert: Alert = {
         ...item,
+        stockId: item.stockId ?? null,
+        isRead: item.isRead ?? null,
+        severity: item.severity ?? null,
         createdAt: new Date(),
       };
       this.alerts.set(alert.id, alert);
@@ -413,6 +439,12 @@ export class MemStorage implements IStorage {
   async createStock(insertStock: InsertStock): Promise<Stock> {
     const stock: Stock = {
       ...insertStock,
+      marketCap: insertStock.marketCap ?? null,
+      peRatio: insertStock.peRatio ?? null,
+      volume: insertStock.volume ?? null,
+      aiScore: insertStock.aiScore ?? null,
+      sector: insertStock.sector ?? null,
+      exchange: insertStock.exchange ?? null,
       updatedAt: new Date(),
     };
     this.stocks.set(stock.id, stock);
@@ -447,6 +479,8 @@ export class MemStorage implements IStorage {
     const recommendation: Recommendation = {
       id,
       ...insertRecommendation,
+      targetPrice: insertRecommendation.targetPrice ?? null,
+      stopLoss: insertRecommendation.stopLoss ?? null,
       createdAt: new Date(),
     };
     this.recommendations.set(id, recommendation);
@@ -492,6 +526,9 @@ export class MemStorage implements IStorage {
     const news: News = {
       id,
       ...insertNews,
+      summary: insertNews.summary ?? null,
+      sentiment: insertNews.sentiment ?? null,
+      sentimentScore: insertNews.sentimentScore ?? null,
       createdAt: new Date(),
     };
     this.news.set(id, news);
@@ -513,6 +550,7 @@ export class MemStorage implements IStorage {
     const watchlistItem: Watchlist = {
       id,
       ...insertWatchlist,
+      userId: insertWatchlist.userId ?? null,
       createdAt: new Date(),
     };
     this.watchlist.set(id, watchlistItem);
@@ -526,7 +564,11 @@ export class MemStorage implements IStorage {
   // Alerts
   async getAlerts(): Promise<Alert[]> {
     return Array.from(this.alerts.values())
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => {
+        const aTime = a.createdAt?.getTime() ?? 0;
+        const bTime = b.createdAt?.getTime() ?? 0;
+        return bTime - aTime;
+      });
   }
 
   async createAlert(insertAlert: InsertAlert): Promise<Alert> {
@@ -534,6 +576,9 @@ export class MemStorage implements IStorage {
     const alert: Alert = {
       id,
       ...insertAlert,
+      stockId: insertAlert.stockId ?? null,
+      isRead: insertAlert.isRead ?? null,
+      severity: insertAlert.severity ?? null,
       createdAt: new Date(),
     };
     this.alerts.set(id, alert);
@@ -575,6 +620,10 @@ export class MemStorage implements IStorage {
   async createForexPair(insertPair: InsertForexPair): Promise<ForexPair> {
     const pair: ForexPair = {
       ...insertPair,
+      high24h: insertPair.high24h ?? null,
+      low24h: insertPair.low24h ?? null,
+      volume: insertPair.volume ?? null,
+      aiScore: insertPair.aiScore ?? null,
       updatedAt: new Date(),
     };
     this.forexPairs.set(pair.id, pair);
@@ -617,6 +666,8 @@ export class MemStorage implements IStorage {
     const holding: PortfolioHolding = {
       id,
       ...insertHolding,
+      stockId: insertHolding.stockId ?? null,
+      forexPairId: insertHolding.forexPairId ?? null,
       updatedAt: new Date(),
     };
     this.portfolioHoldings.set(id, holding);
@@ -664,6 +715,10 @@ export class MemStorage implements IStorage {
       const user: User = {
         id: userData.id || randomUUID(),
         ...userData,
+        email: userData.email ?? null,
+        firstName: userData.firstName ?? null,
+        lastName: userData.lastName ?? null,
+        profileImageUrl: userData.profileImageUrl ?? null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -713,6 +768,13 @@ export class MemStorage implements IStorage {
     const newInvestment: UserInvestment = {
       id,
       ...investment,
+      userId: investment.userId ?? "default_user",
+      investedCurrency: investment.investedCurrency ?? "INR",
+      stockId: investment.stockId ?? null,
+      forexPairId: investment.forexPairId ?? null,
+      targetPrice: investment.targetPrice ?? null,
+      stopLossPrice: investment.stopLossPrice ?? null,
+      alertsEnabled: investment.alertsEnabled ?? null,
       currentPrice: investment.purchasePrice,
       currentValue: investment.investedAmount,
       profitLoss: 0,
@@ -757,7 +819,11 @@ export class MemStorage implements IStorage {
         const investment = this.userInvestments.get(alert.investmentId);
         return investment?.userId === userId;
       })
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => {
+        const aTime = a.createdAt?.getTime() ?? 0;
+        const bTime = b.createdAt?.getTime() ?? 0;
+        return bTime - aTime;
+      });
   }
 
   async createInvestmentAlert(alert: InsertInvestmentAlert): Promise<InvestmentAlert> {
@@ -765,6 +831,10 @@ export class MemStorage implements IStorage {
     const newAlert: InvestmentAlert = {
       id,
       ...alert,
+      isRead: alert.isRead ?? null,
+      severity: alert.severity ?? 'info',
+      actionRequired: alert.actionRequired ?? null,
+      suggestionType: alert.suggestionType ?? null,
       createdAt: new Date(),
     };
 
@@ -965,7 +1035,7 @@ export class DatabaseStorage implements IStorage {
   // For brevity, I'll delegate the rest to MemStorage for now
   private memStorage = new MemStorage();
 
-  async getRecommendations(): Promise<Recommendation[]> {
+  async getRecommendations(): Promise<(Recommendation & { stock: Stock })[]> {
     return this.memStorage.getRecommendations();
   }
 
@@ -989,7 +1059,7 @@ export class DatabaseStorage implements IStorage {
     return this.memStorage.createNews(newsItem);
   }
 
-  async getWatchlist(): Promise<(Watchlist & { stock?: Stock })[]> {
+  async getWatchlist(): Promise<(Watchlist & { stock: Stock })[]> {
     return this.memStorage.getWatchlist();
   }
 
