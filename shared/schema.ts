@@ -165,6 +165,24 @@ export const forexPairs = pgTable("forex_pairs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Historical stock price data for charts
+export const stockHistoricalData = pgTable("stock_historical_data", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  stockId: varchar("stock_id")
+    .notNull()
+    .references(() => stocks.id),
+  date: timestamp("date").notNull(),
+  open: real("open").notNull(),
+  high: real("high").notNull(),
+  low: real("low").notNull(),
+  close: real("close").notNull(),
+  volume: integer("volume"),
+  adjustedClose: real("adjusted_close"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Session storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const sessions = pgTable(
@@ -248,6 +266,9 @@ export const insertUserInvestmentSchema = createInsertSchema(
 export const insertInvestmentAlertSchema = createInsertSchema(
   investmentAlerts,
 ).omit({ id: true, createdAt: true });
+export const insertStockHistoricalDataSchema = createInsertSchema(
+  stockHistoricalData,
+).omit({ id: true, createdAt: true });
 
 // Types
 export type Stock = typeof stocks.$inferSelect;
@@ -276,3 +297,5 @@ export type UserInvestment = typeof userInvestments.$inferSelect;
 export type InsertUserInvestment = z.infer<typeof insertUserInvestmentSchema>;
 export type InvestmentAlert = typeof investmentAlerts.$inferSelect;
 export type InsertInvestmentAlert = z.infer<typeof insertInvestmentAlertSchema>;
+export type StockHistoricalData = typeof stockHistoricalData.$inferSelect;
+export type InsertStockHistoricalData = z.infer<typeof insertStockHistoricalDataSchema>;
