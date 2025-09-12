@@ -107,9 +107,9 @@ export class MemStorage implements IStorage {
     const nifty: MarketIndex = {
       id: "NIFTY50",
       name: "NIFTY 50",
-      currentValue: 25385.80,
-      changeAmount: 65.90,
-      changePercent: 0.26,
+      currentValue: 25114.00,
+      changeAmount: -15.45,
+      changePercent: -0.06,
       updatedAt: new Date(),
     };
     
