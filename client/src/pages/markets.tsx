@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import NavigationHeader from "@/components/NavigationHeader";
 import MobileMenu from "@/components/MobileMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,15 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Stock, ForexPair } from "@shared/schema";
 
 export default function Markets() {
   const [activeTab, setActiveTab] = useState("stocks");
+  const [, setLocation] = useLocation();
 
-  const { data: stocks = [], isLoading: isLoadingStocks } = useQuery({
+  const { data: stocks = [], isLoading: isLoadingStocks } = useQuery<Stock[]>({
     queryKey: ["/api/stocks"],
   });
 
-  const { data: forexPairs = [], isLoading: isLoadingForex } = useQuery({
+  const { data: forexPairs = [], isLoading: isLoadingForex } = useQuery<ForexPair[]>({
     queryKey: ["/api/forex"],
   });
 
@@ -107,8 +110,13 @@ export default function Markets() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {stocks.map((stock: any) => (
-                          <tr key={stock.id} className="hover:bg-gray-50">
+                        {stocks.map((stock) => (
+                          <tr 
+                            key={stock.id} 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setLocation(`/stocks/${stock.id}`)}
+                            data-testid={`row-stock-${stock.id}`}
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 <div className={`w-10 h-10 ${getCompanyBgColor(stock.symbol)} rounded-lg flex items-center justify-center mr-3`}>
@@ -117,30 +125,39 @@ export default function Markets() {
                                   </span>
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">{stock.name}</div>
-                                  <div className="text-sm text-gray-500">{stock.symbol} • {stock.exchange}</div>
+                                  <div className="text-sm font-medium text-gray-900" data-testid={`text-stock-name-${stock.id}`}>{stock.name}</div>
+                                  <div className="text-sm text-gray-500" data-testid={`text-stock-symbol-${stock.id}`}>{stock.symbol} • {stock.exchange}</div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-testid={`text-stock-price-${stock.id}`}>
                               {formatCurrency(stock.currentPrice)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`text-sm font-medium ${getChangeColor(stock.changeAmount)}`}>
+                              <span className={`text-sm font-medium ${getChangeColor(stock.changeAmount)}`} data-testid={`text-stock-change-${stock.id}`}>
                                 {stock.changeAmount >= 0 ? '+' : ''}{formatCurrency(stock.changeAmount)} 
                                 ({stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%)
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" data-testid={`text-stock-volume-${stock.id}`}>
                               {stock.volume?.toLocaleString() || 'N/A'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={`${getScoreColor(stock.aiScore || 0)} px-2 py-1 text-sm font-medium`}>
+                              <Badge className={`${getScoreColor(stock.aiScore || 0)} px-2 py-1 text-sm font-medium`} data-testid={`badge-stock-score-${stock.id}`}>
                                 {stock.aiScore?.toFixed(1) || 'N/A'}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <Button size="sm" variant="outline" className="text-primary hover:text-blue-700">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-primary hover:text-blue-700"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLocation(`/stocks/${stock.id}`);
+                                }}
+                                data-testid={`button-view-details-${stock.id}`}
+                              >
                                 View Details
                               </Button>
                             </td>
@@ -194,7 +211,7 @@ export default function Markets() {
                             </td>
                           </tr>
                         ) : (
-                          forexPairs.map((pair: any) => (
+                          forexPairs.map((pair) => (
                             <tr key={pair.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">

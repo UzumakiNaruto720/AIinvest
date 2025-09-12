@@ -11,6 +11,7 @@ import News from "@/pages/news";
 import Investments from "@/pages/investments";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
+import StockDetail from "@/components/StockDetail";
 import { useAuth } from "@/hooks/useAuth";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/markets" component={Markets} />
+          <Route path="/stocks/:stockId" component={StockDetail} />
           <Route path="/portfolio" component={Portfolio} />
           <Route path="/investments" component={Investments} />
           <Route path="/news" component={News} />
