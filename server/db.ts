@@ -1,15 +1,14 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
+// db.ts - Mock version for local frontend testing
 
-neonConfig.webSocketConstructor = ws;
+// Mock "db" object for local testing
+export const db = {
+  users: [
+    { id: 1, name: "Test User", email: "you@example.com" }
+  ],
+  getUser: function() {
+    return this.users[0];
+  }
+};
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
-
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Optional: provide a mock "pool" object if something else imports it
+export const pool = {};
