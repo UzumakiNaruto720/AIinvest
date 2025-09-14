@@ -3,28 +3,26 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client/src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
-    },
+      "@": path.resolve(__dirname, "client/src")
+    }
   },
-  root: path.resolve(__dirname, "client"),
-  build: {
-    outDir: path.resolve(__dirname, "dist/public"),
-    emptyOutDir: true,
-  },
+  root: path.resolve(__dirname, "client"), // <-- ensure points to your client folder
   server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
+    port: 5173,
     proxy: {
-      "/api": "http://localhost:5000", // 🔥 forward API calls to Express backend
-    },
+      "/api": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+        credentials: true
+      }
+    }
   },
+  build: {
+    outDir: path.resolve(__dirname, "dist"),
+    emptyOutDir: true
+  }
 });

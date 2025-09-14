@@ -1,32 +1,33 @@
 import express from "express";
+import session from "express-session";
 import cors from "cors";
-import { registerRoutes } from "./routes";
-import { setupAuth } from "./replitauth";
+import { registerAuthRoutes } from "./auth";
 
-async function main() {
-  const app = express();
+const app = express();
+const PORT = 4000;
 
-  app.use(express.json());
-  app.use(
-    cors({
-      origin: "http://localhost:3000", // frontend dev server
-      credentials: true,
-    })
-  );
+// Middleware
+app.use(cors({
+  origin: "http://localhost:5173", // frontend origin
+  credentials: true
+}));
+app.use(express.json());
 
-  // Setup local session-based auth
-  setupAuth(app);
+app.use(session({
+  secret: "supersecretkey",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+  }
+}));
 
-  // Register all routes
-  const server = await registerRoutes(app);
+// Routes
+registerAuthRoutes(app);
 
-  const PORT = process.env.PORT || 4000;
-  server.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-  });
-}
+// Default route
+app.get("/", (_req, res) => res.send("Backend is running"));
 
-main().catch((err) => {
-  console.error("❌ Failed to start server:", err);
-  process.exit(1);
-});
+// Start server
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

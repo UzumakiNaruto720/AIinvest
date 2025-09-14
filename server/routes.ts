@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { isAuthenticated } from "./replitauth";
+import { isAuthenticated } from "./auth";
 import { z } from "zod";
 
 // Validation schemas
